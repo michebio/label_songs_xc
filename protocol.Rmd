@@ -1,0 +1,384 @@
+---
+title: "Labeling bird songs"
+subtitle: The protocol was developed within the [Acoucene project](https://www.fondationbiodiversite.fr/en/the-frb-in-action/programs-and-projects/le-cesab/acoucene/) at the [FRB-CESAB](https://www.fondationbiodiversite.fr/en/).
+abstract: The following protocol describes how to label regions of recordings containing bird vocalization. Recordings are downloaded from the [Xeno-Canto repository](https://xeno-canto.org/) through R. Once downloaded, each recording is opened and labeled manually using the software Audacity. The labels indicate regions of interest within a recording belonging to the same bird species as shown in the recording file name. The regions of interest correspond to the start and the end of a bird vocalization. The labels will be used in the following analyses of the Acoucene project to extract traits and indices of acoustic diversity per species.
+author: 
+  - Michela Busana, Fred Sebe, Jean-Yves Barnagaud, Louis Salle 
+date: "Sept 2023"
+site: bookdown::bookdown_site
+output:
+  # bookdown::word_document2:
+  #   toc: yes
+  bookdown::pdf_document2:
+    toc: yes
+    keep_tex: true
+    latex_engine: xelatex
+always_allow_html: true
+#bibliography: biblio.bib
+urlcolor: blue
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+# manually set the working directory to be equal to the rproject working directory!
+#knitr::opts_knit$set(root.dir = normalizePath(".."))
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+#library(nomnoml)
+#library(ggdag)
+library(ggplot2)
+library(tidyverse)
+library(janitor)
+library(flextable)
+library(magrittr)
+```
+
+
+\newpage
+
+# Audacity software
+
+Follow the instructions to [download](https://www.audacityteam.org/download/) the software Audacity.
+
+Follow the link to read the [official manual](https://manual.audacityteam.org/man/label_tracks.html).
+
+## Setting Audacity preferences
+
+To permanently modify Audacity settings (version 3.3.3; different software versions are acceptable but might look slightly different), click on **Edit > Preferences** (Fig. \@ref(fig:au1)).
+
+```{r au1, echo=FALSE, fig.cap="How to Edit Preferences on Audacity", out.width = '60%'}
+knitr::include_graphics("./images/au1.png")
+```
+
+
+**Edit > Preferences > Tracks** (Fig. \@ref(fig:au2)):
+
+*   Tick: Auto-fit track height
+*   Tick: Auto-scroll if head unpinned
+*   Default view Mode: Multi-view
+*   Default Waveform scale: Linear (dB)
+*   Display samples: Stem plot
+*   Default audio track name: Audio
+
+```{r au2, echo=FALSE, fig.cap="How to Edit Preferences Tracks on Audacity", out.width = '60%'}
+knitr::include_graphics("./images/au2_2.png")
+```
+
+
+
+
+**Edit > Preferences > Tracks > Track Behaviors** (Fig. \@ref(fig:au3)):
+
+*   Tick: Enable dragging selection edges
+*   Type to create a label
+ 
+
+```{r au3, echo=FALSE, fig.cap="Edit Track Behaviors on Audacity", out.width = '60%'}
+knitr::include_graphics("./images/au3_2.png")
+```
+
+
+**Edit > Preferences > Tracks > Spectrograms** (Fig. \@ref(fig:au4)):
+	
+*    *Scale*:
+
+      -    Scale: Linear
+      -    Min Frequency (Hz): 0
+      -    Max Frequency (Hz): 20000
+
+*    *Colors*:
+      -    Gain(dB): 15
+      -    Range(dB):80
+      -    High boost (dB/dec): 0
+      -    Scheme: Grayscale
+
+*    *Algorithm*:
+      -    Algorithm: Frequencies
+      -    Window size: 2048
+      -    Window type: Hann
+      -    Zero padding factor: 2
+
+*    Tick: Enable Spectral selection
+
+
+
+```{r au4, echo=FALSE, fig.cap="Edit spectrogram settings on Audacity", out.width = '60%'}
+knitr::include_graphics("./images/au4_2.png")
+```
+
+
+
+
+
+\newpage
+
+# Downloading songs from Xeno-Canto (XC) with R/Rstudio {#downloadingsongs}
+
+We assume that users already have some basic knowledge of the [R language](https://rstudio-education.github.io/hopr/starting.html). 
+
+If you are not an R user, please email Michela; she will download and mail you the recordings and metadata.
+
+## For R users, follow the next steps.
+
+Please download the scripts from [GitLab](https://gitlab.com/michebio/label_songs_xc). 
+
+The easiest way is to tap on the download button on the right-hand side of the page  (Fig. \@ref(fig:gl)) and download the compressed files:
+
+```{r gl, echo=FALSE, fig.cap="Button to download GitLab repository with scripts as a compressed folder", out.width = '60%'}
+knitr::include_graphics("./images/gl.png")
+```
+
+
+## Open the Rproj file `label_songs_xc.Rproj` 
+
+
+Once you have downloaded and unzipped the repository, open the Rproj file `label_songs_xc.Rproj` with Rstudio. 
+Using the .Rproj file ensures that all the relative paths to directories are set up correctly.
+
+## Open the script `download_recordings_from_xc.R`
+
+Open the `download_recordings_from_xc.R` in RStudio (click on `File` > `Open files...` on the top left) and manually change the following:
+
+*   Tell R who you are by manually uncommenting (i.e., delete the `#` sign at the beginning of the relevant line) the line at the top of the file starting with `observer = ` corresponding to your initials. The available initials are:
+
+    -   "JYB" Jean-Yves Barnagaud
+    -   "SC" Solene Croci
+    -   "LB" Luc Barbaro
+    -   "AE" Alice Eldridge
+    -   "JC" Jonathan Carruthers-Jones
+    -   "AG" Amandine Gasc
+    -   "SM" Sandra Muller
+    -   "LS" Louis Salle
+    -   "FS" Frederic Sebe
+    -   "MB" Michela Busana
+
+*   Save the file with the correct initials and click on the `Source` button on the top of Rstudio  (Fig. \@ref(fig:rst)).
+
+*   Note that the script might take a few hours to download depending on the speed of your internet connection. It is recommended to run the script overnight when fewer users are connected to XC.
+
+*   **Please run the script twice**. This double-run limits the number of errors when downloading the files due to intermittent internet connections.
+
+```{r rst, echo=FALSE, fig.cap="Location of the Source button in RStudio. Please note that RStudio might look different depending on your settings.", out.width = '60%'}
+knitr::include_graphics("./images/rs.png")
+```
+
+## Errors of download
+
+Sometimes, there are errors when downloading the files.
+It is preferable to use a fast internet connection to reduce the failures.
+The most common error is a timeout due to intermittent internet connection from XC or your office: e.g., `++++++++++ could not download Recording_IDxxxxxx `; or `No connection to xeno-canto.org (check your internet connection!)`; or `Error in download.file(url = paste("https://xeno-canto.org/", results$Recording_ID[x],...`
+In this case, re-run the script, preferably overnight, when fewer users are connected to XC.
+When re-running the R script, there are no issues with already downloaded recordings.
+R will automatically skip any file already available on your machine.
+
+If you encounter any other R error, please email Michela.
+
+# Directories and files
+
+The R script downloads the XC recordings within an automatically created subdirectory called `xc` within the project directory. 
+Each species is then downloaded within a sub-directory named after the English name of the species.
+Within each species sub-directory, you will find (Fig. \@ref(fig:fol)):
+
+*   a CSV/XLSX file with the recording metadata
+*   a sub-directory called `recordings` containing the recordings from XC
+
+```{r fol, echo=FALSE, fig.cap= "An example of the directories for a species", out.width = '60%'}
+knitr::include_graphics("./images/folder_struc.png")
+```
+
+
+## The XLSX/CSV file with the metadata
+
+```{r csvp, echo=FALSE, fig.cap="A screenshot of parts of a XLSX/CSV file. The Recording ID is a unique identifier used to identify a recordings and its labels", out.width = '60%'}
+knitr::include_graphics("images/csv.png")
+```
+
+The XLSX and CSV files are identical. Please use the format that is more convenient for you and note that the CSV file uses `,` separator.
+The file contains all the metadata for the recordings and species-specific info (Fig. \@ref(fig:csvp)).
+
+The most important columns of the XLSX/CSV file are:
+
+*  **Recording_ID** unique IDentifier for each recording assigned by XC
+*  **birdlife_sci_name** scientific name following BirdLife International's taxonomy      
+*  **English_name** common name 
+*  **song_description_collins_bird_guide**   description of the song within the Collins bird guide (Collins Bird Guide, 2nd ed. Lars Svensson)  
+*  **jean_roche** file name to use when searching for the recording within the CD by [Jean-Claude Roché](https://www.jeanroche.fr/). The file name is useful in case of taxonomy mismatches. The recordings by Jean-Claude Roché can be used as guidelines to identify the range of vocalizations of each species (see section on [Labeling songs in Audacity](#labeling) and [species vocalizations](#speciesvocalizations)). 
+*  **cd**  location of the CD file (CD are available on the [project Google Drive](https://drive.google.com/drive/folders/1DBdN0iFOLbMIPG9bsoa3nzzWMjubQCQM?usp=sharing))   
+*  **short_or_continuous_song**  either short or continuous songs; see section on [species vocalizations](#speciesvocalizations)
+*  **Vocalization_type** Description of the vocalization from the recordist  
+*  **count_other_species** the number of additional species (i.e. different than the target species) detected by the recordist
+
+A complete list of columns and their description in available in the `README.md` file.
+
+# Labeling songs in Audacity {#labeling}
+
+For each recording, we only focus on the target species corresponding to the directory name where the recordings and metadata are saved. 
+
+
+
+
+*    Use the provided R script to download the files from XC (see section [Downloading songs from Xeno-Canto (XC) with R/Rstudio](#downloadingsongs). This step can be done only once, the first time you do the labelisation, and can be ignored afterward.
+
+*    Open the `xc` directory and then the directory with the species name of interest. Open the XLSX/CSV file with the recording metadata. The actual recordings can be found under the `recordings` directory. 
+
+*    Download the vocalization from the Jean-Claude Roché CD available on [Google Drive](https://drive.google.com/drive/folders/1DBdN0iFOLbMIPG9bsoa3nzzWMjubQCQM?usp=sharing). Rarely, there are taxonomy mismatches between BirdLife, XC, and the Jean-Claude Roché CD. The name of the file containing the vocalization from CD and its location is available on the XLSX/CSV file under the columns jean_roche and cd. Open the vocalization from the CD with Audacity and listen while checking the spectrogram. In general, the first recording in the track is the alarm call, followed by the song(s). So, the last ones are always the best to use as a model for the species’ vocalization. We only focus on labeling songs for species such as oscines that produce both calls and songs. Otherwise, for species that only produce calls, we label the calls. 
+
+*   Remember also to label the vocalization from the Jean Roche CD (save the label file with the name of the file in the CD, e.g., for the file “Jean C. Roché - Bruant des roseaux - Emberiza schoeniclus.wav” save the label as “Jean C. Roché - Bruant des roseaux - Emberiza schoeniclus.txt”).
+
+*   **Follow the order in which the recordings are listed in the XLSX/CSV for the analysis**, as they are ordered on specific characteristics such as quality. The most crucial column within the CSV file is the **Recording_ID** (Fig. \@ref(fig:csvp)).
+
+*   Copy (`Ctrl + C`) the Recording_ID of the first row. Go to the folder view of the species directory in your machine and press `CTRL + F` and `Ctrl + V` to search for the ID. Only the recording of interest (identified by its Recording_ID) will be shown in the folder view (Fig. \@ref(fig:searchid); you will also paste the **Recording_ID** in the following steps when naming both the first label and the .txt file exported from Audacity).
+
+*   Open the recording with Audacity and listen at least for 10 seconds to make a first assessment
+
+*   In Audacity Zoom (Click on `View -> zoom -> zoom in` or use `Ctrl + 1`. Alternatively, select a region of interest with the mouse and press `Ctrl + E`) into the recording. A good level of zooming ensures that the scale at the top of the spectrogram shows tickmarks with *ca.* 5 points distance as in Fig. \@ref(fig:img5s). Zoom in even further to *ca.* 1 point distance to identify a vocalization's exact beginning and end \@ref(fig:imghighzoom). In Fig. \@ref(fig:small) we show the same recording with an inappropriate zoom level that does not allow to identify vocalizations accurately.
+
+*   Check for background noise. Ignore the file if it is too noisy and move to the next **Recording_ID** in the CSV file. The noise can come from the environment or because of other species singing simultaneously. When multiple species are singing sequentially, the recording can still be used. However, we exclude recordings with species singing simultaneously on top of each other (e.g. Fig. \@ref(fig:mlps))
+
+*    The span of noise in the signal should be < ca. 20\% of the bird's signal. When the noise is > 20 \% (e.g., Fig. \@ref(fig:bckn) disregard the recording. Note that recordings are sorted within the CSV/XLSX file by the presence of additional species and then by the signal to noise ratio. Therefore, the first recordings at the top of the CSV/XLSX will be less noisy. 
+
+*   Check if the recording was altered before uploading it to XC (e.g., Fig. \@ref(fig:pca)). Preferentially exclude these altered recordings.
+
+*    Check if the file is not saturated, i.e., when zooming in, the shape of the oscillogram is flat and squared instead of rounded (As yet I haven't found any example of a saturated recording in XC, but please keep this in mind).
+
+*  We explain how to define a species vocalization in the section [Species vocalizations](#speciesvocalizations). Once you have chosen the area in the spectrogram corresponding to a song, you must select and label it. 
+
+    *   To select an area in the spectrogram, right-click at the beginning of the song, drag the mouse, and right-click at the end of the song. Ideally, we would place the cursor within 0.1 seconds before the start and 0.1 seconds after the end of the vocalization. Note that often, at the song's end, there is some sound reverberation, and the exact end is difficult to find (Fig \@ref(fig:rever)).
+    *   To add a label to the selected area, use `CTRL + B` and type. Name the first label with the ID of the XC file (i.e., copy/paste the **Recording_ID** from the CSV file into the label, e.g., 802564). If more vocalizations are available within the same recording, label each vocalization up to a maximum of 5 vocalizations per recording. There is no need to name any of these following vocalizations, so you could leave the names empty or use 2, 3, 4, and 5 or anything else at your convenience.
+    *    When the recordist used stereo, the spectrogram includes two separate channels. The spectrogram is split in two as shown in Fig. \@ref(fig:twoc). Pick the less noisy channel if there are differences between the two or choose randomly if they appear identical. Indicate which one to use for the analyses, so add to the end of the first label the characters `_R` to indicate the right/top channel or the letter `_L` to indicate the bottom/left channel (e.g., a label could be called `376723_R` where 376723 is the Recodring_ID).
+    *   Export the labels as .txt files from the drop-down menu (see on the top-left `File > Export > Export Labels`, Fig. \@ref(fig:lbl)).
+    *   Save the .txt file within the directory called `labels_@your initials` and each species' sub-directory within. Name the .txt file as the **Recording_ID** from the CSV file, e.g. 376723.txt.
+    
+*   REPEAT all the steps until you have labelled **30 recordings** per species (follow the order within the CSV file to select the **Recording_ID** of the 30 recordings) 
+
+*   Once finished, zip the `labels_@your initials` directory and email it to michela.busana@fondationbiodiverste.fr
+
+*   If you cannot find 30 good quality recordings per species, please email michela.busana@fondationbiodiverste.fr the name of the problematic species
+
+
+
+# Species vocalizations {#speciesvocalizations}
+
+A label defines the vocalization's beginning and end along the time (x-axis of the spectrogram).
+We define the beginning as the moment in time when the audio level switches from silence (or low background noise) to an audible bird vocalization.
+We define the end of the vocalization as the moment the vocalization ends.
+For birds producing simple calls or songs, the end of the vocalization corresponds to the moment in which the bird vocalization is followed by silence.
+However, many species produce complex songs with multiple phrases and short breaks of 1-2 seconds between phrases.
+You can learn about species-specific complexity levels when reading the Collin's bird guide voice description (see the `song_description_collins_bird_guide` column in the CSV/XLSX) and listening to the Jean-Claude Roché recordings.
+For these more complex songs, the end of the vocalization is identified when the sequence of phrases is followed by silence.
+Note that sometimes, the bird might produce incomplete vocalizations, such as singing only the first phrase of the song.
+We do label the phrase as a song in this case. 
+The Black Redstart' song is an example of a song with multiple phrases. We provide examples of how to label its recordings in Fig. \@ref(fig:rs1) which shows the complete song, and in Fig. \@ref(fig:rs2), which shown the incomplete song with a single phrase.
+
+## Species with multiple typical vocalizations
+
+For species that have both songs and calls, we label only songs; while for species that do only calls we label the calls. Within calls we exclude alarm and flight calls and begging.
+
+The `song_description_collins_bird_guide` column within the CSV/XLSX file provides a description of the species' voice  and can be read before starting the labelisation.
+
+The Jean-Claude Roché recordings often include multiple vocalizations for each species and are a good indication of the variation in songs for a species.
+In general, the first vocalization within the Jean-Claude Roché recordings is the alarm call and it can be ignored.
+
+Many species have multiple typical songs (e.g., woodpeckers do drumming and also sing, blue tits have multiple typical songs). 
+Differences in typical songs are apparent when opening the CD: if there are many songs with different and distinctive patterns within the CD, the species has multiple songs. 
+Some of these songs are sung commonly, some rarely, but any can be labelled.
+
+We assume that XC is not biased and that a random sampling of recordings extracted from XC is a good representation of the distribution of songs for the species. 
+
+
+Within the CSV file, the column called `short_or_continuous_song` indicates if the species produces short or continuous songs. A few steps differ between species with short or continuous songs. 
+
+## Species with short songs
+
+Labelise the complete song or the call. For species that only do calls, select the call. For species that have both song and call, do the song only.
+
+## Species with continuous songs
+
+Exclude recordings that are less than 30 seconds long.
+Start the label when it is appropriate (i.e., when the song starts) and end the label until either the record ends or the song ends, or the quality degrades (e.g., if the bird flies away, exclude the part where the amplitude is too short).
+Later on, we will select parts of the vocalization using standardized criteria.
+
+It is preferable to select a recording capturing the beginning of the vocalization, i.e., when the beginning of the recording is silent.
+
+# Post-processing checks
+
+After you finished labeling all the assigned species, please run the `check_label_accuracy.R` script from RStudio, i.e.:
+
+```{r, eval = FALSE}
+source("check_label_accuracy.R")
+```
+
+The script runs some basic checks on your labels and prints to your console warnings if:
+
+*  not all species were labeled
+*  you labeled less than 15 XC recordings + the Jean Roche CD
+*  the Recording_ID differs between the file name storing the labels and the first label within the txt file
+*  the Recording_ID cannot be found in the list of recordings for the species
+*  the Jean Roche song from the CD was not labeled
+*  the channel of stereo recordings was not specified correctly.
+
+Please manually check any warning printed to the console. The warning messages are self-explanatory. However, if you need more clarification, please email Michela.
+
+If you cannot use R, please email Michela the labels_@your initials folder, and she will run the checks for you.
+
+# Observer effect
+
+To test observer effect in the labelisation we ask 4 people to label the same set of 5 species.
+
+```{r searchid, echo=FALSE, fig.cap="A recording can be searched by its Recording ID number, which is unique for each recording", out.width = '60%'}
+knitr::include_graphics("./images/recidsearch.png")
+```
+
+
+```{r img5s, echo=FALSE, fig.cap="A screenshot of Audacity showing the ideal Zoom in level", out.width = '60%'}
+knitr::include_graphics("./images/betterzoom.png")
+```
+
+
+```{r imghighzoom, echo=FALSE, fig.cap="A screenshot of Audacity showing the ideal Zoom in level to identify the start and end of a vocalization", out.width = '60%'}
+knitr::include_graphics("./images/imghighzoom.png")
+```
+
+```{r small, echo=FALSE, fig.cap="A screenshot of Audacity when the Zoom level is too large", out.width = '60%'}
+knitr::include_graphics("./images/zoom_small.png")
+```
+
+```{r mlps, echo=FALSE, fig.cap="A noisy recording with multiple species singing on top of each other", out.width = '60%'}
+knitr::include_graphics("./images/mlt_sp.png")
+```
+
+```{r bckn, echo=FALSE, fig.cap="A noisy recording where the noise is about 30 percent of the amplitude of the signal. This can be seen better when zooming in.", out.width = '60%'}
+knitr::include_graphics("./images/bck_noise.png")
+```
+
+```{r rever, echo=FALSE, fig.cap="An example of a label of a song. The end of the song is followed by some sound reverberation, which is excluded by the label", out.width = '60%'}
+knitr::include_graphics("images/reververation.png")
+```
+```{r twoc, echo=FALSE, fig.cap="An example of a recording with two channels. In this example, the two channels are very similar. The first song labelled is named after the Recording ID followed by an underscore and the letter R or L to indicate a preference for the top/Right or bottom/Left channel.", out.width = '60%'}
+knitr::include_graphics("images/two_channels.png")
+```
+
+
+```{r lbl, echo=FALSE, fig.cap="Exporting a label from Audacity", out.width = '60%'}
+knitr::include_graphics("images/label.png")
+```
+
+
+```{r pca, echo=FALSE, fig.cap="A recording that was edited by the recordist before uploading it to XC as shown by the white area at the top and bottom of the y-axis.", out.width = '60%'}
+knitr::include_graphics("images/previously_cut_amp.png")
+```
+
+
+```{r rs1, echo=FALSE, fig.cap="Complete Black Redstart song", out.width = '60%'}
+knitr::include_graphics("images/rs1.png")
+```
+
+```{r rs2, echo=FALSE, fig.cap="Incomplete song with a single phrase of Black Redstart. We do include this vocalizations for our analyses", out.width = '60%'}
+knitr::include_graphics("images/rs2.png")
+```
+
+
+<!-- #    Possible difficulties: -->
+
+<!-- defining the start and the end of short songs/calls -->
+<!-- identifying the main bird singing, e.g., removing possible responses produced by other birds far away  -->
